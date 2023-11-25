@@ -113,10 +113,35 @@ const deleteSingleUser = async (req: Request, res: Response) => {
   }
 };
 
+
+const addSingleProduct = async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.userId);
+  
+      const productData = req.body;
+      const result = await UserServices.addSingleProductInDb(userId, productData);
+      res.status(200).json({
+        "success": true,
+        "message": "Order created successfully!",
+        "data": null
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'User not found',
+        error: {
+          code: 404,
+          description: 'User not found!',
+        },
+      });
+    }
+  };
+
 export const UserController = {
   createUser,
   getAllUsers,
   getSingleUser,
   updateSingleUser,
-  deleteSingleUser,
+    deleteSingleUser,
+    addSingleProduct
 };
