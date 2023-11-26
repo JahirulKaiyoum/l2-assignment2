@@ -1,5 +1,4 @@
-import  Joi  from 'joi';
-
+import Joi from 'joi';
 
 const fullNameValidationSchema = Joi.object({
   firstName: Joi.string().required().messages({
@@ -75,6 +74,5 @@ const userValidationSchema = Joi.object({
   address: addressValidationSchema.required(),
   orders: Joi.array().items(orderValidationSchema).default([]),
 });
-
 
 export default userValidationSchema;

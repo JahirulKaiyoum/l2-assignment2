@@ -1,5 +1,5 @@
-import express from "express";
-import { UserController } from "./user.controller";
+import express from 'express';
+import { UserController } from './user.controller';
 
 const router = express.Router();
 router.get('/', UserController.getAllUsers);
@@ -9,5 +9,8 @@ router.put('/:userId', UserController.updateSingleUser);
 router.delete('/:userId', UserController.deleteSingleUser);
 router.put('/:userId/orders', UserController.addSingleProduct);
 router.get('/:userId/orders', UserController.getAllProduct);
-router.get('/:userId/orders/total-price', UserController.getSingleUserAllProductTotalPrice);
+router.get(
+  '/:userId/orders/total-price',
+  UserController.getSingleUserAllProductTotalPrice,
+);
 export const UserRoutes = router;
