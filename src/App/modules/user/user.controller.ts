@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UserServices } from './user.services';
 import userValidationSchema from './user.validation';
+import productValidationSchema from './product.validation';
 
 const createUser = async (req: Request, res: Response) => {
   try {
@@ -8,12 +9,13 @@ const createUser = async (req: Request, res: Response) => {
     const { error, value } = userValidationSchema.validate(userData);
 
     if (error) {
-      res.status(200).json({
+      return res.status(400).json({
         success: false,
-        message: 'Something went wrong',
-        error: error,
+        message: 'Validation failed',
+        error: error.details.map((detail) => detail.message),
       });
     }
+
     const result = await UserServices.createUserInDb(value);
     res.status(200).json({
       success: true,
@@ -21,13 +23,14 @@ const createUser = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    res.status(200).json({
+    res.status(500).json({
       success: false,
       message: 'Something went wrong',
       error: error,
     });
   }
 };
+
 
 const getAllUsers = async (req: Request, res: Response) => {
   try {
@@ -70,9 +73,18 @@ const getSingleUser = async (req: Request, res: Response) => {
 const updateSingleUser = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.userId);
-
     const userData = req.body;
-    const result = await UserServices.updateSingleUserInDb(userId, userData);
+
+    const { error, value } = userValidationSchema.validate(userData);
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        error: error.details.map((detail) => detail.message),
+      });
+    }
+    const result = await UserServices.updateSingleUserInDb(userId, value);
     res.status(200).json({
       success: true,
       message: 'User updated successfully!',
@@ -119,12 +131,64 @@ const addSingleProduct = async (req: Request, res: Response) => {
       const userId = Number(req.params.userId);
   
       const productData = req.body;
-      const result = await UserServices.addSingleProductInDb(userId, productData);
+
+      const { error, value } = productValidationSchema.validate(productData);
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Product information Validation failed',
+          error: error.details.map((detail) => detail.message),
+        });
+      }
+
+      const result = await UserServices.addSingleProductToUserOrdersInDb(userId, value);
       res.status(200).json({
         "success": true,
         "message": "Order created successfully!",
         "data": null
       });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'User not found',
+        error: {
+          code: 404,
+          description: 'User not found!',
+        },
+      });
+    }
+};
+
+const getAllProduct = async (req: Request, res: Response) => {
+    try {
+        const userId = Number(req.params.userId);
+      const result = await UserServices.getAllProductOFSingleUserFromDb(userId);
+      res.status(200).json({
+        success: true,
+        message: "Order fetched successfully!",
+        data: {orders: result}
+    });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Something went wrong',
+        error: error,
+      });
+    }
+};
+  
+
+const getSingleUserAllProductTotalPrice = async (req: Request, res: Response) => {
+    try {
+        const userId = Number(req.params.userId);
+      const result = await UserServices.getTotalProductPriceOFSingleUserFromDb(userId);
+      res.status(200).json({
+        success: true,
+        message: "Total price calculated successfully!",
+        data: {
+            totalPrice: result
+        }
+    });
     } catch (error) {
       res.status(400).json({
         success: false,
@@ -143,5 +207,7 @@ export const UserController = {
   getSingleUser,
   updateSingleUser,
     deleteSingleUser,
-    addSingleProduct
+    addSingleProduct,
+    getAllProduct,
+    getSingleUserAllProductTotalPrice
 };

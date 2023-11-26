@@ -1,4 +1,4 @@
-import { TUser } from "./user.interface";
+import { TOrders, TUser } from "./user.interface";
 import User from "./user.model";
 
 const createUserInDb = async (userData: TUser) => {
@@ -29,7 +29,6 @@ const getAllUsersFromDb = async () => {
 };
 
 const getSingleUserFromDb = async (userId: number) => {
-    // const user = await User.findOne({ userId });
     const user = await User.isUserExists(userId);
     if (user) {
         return user;
@@ -40,9 +39,7 @@ const getSingleUserFromDb = async (userId: number) => {
 };
 
 const updateSingleUserInDb = async (userId: number, userData: TUser) => {
-    // const user = await User.findOne({ userId });
     const foundUser = await User.isUserExists(userId);
-    console.log({foundUser})
     const updatedData = userData;
     if (foundUser) {
         const updatedUser = await User.findOneAndUpdate(
@@ -58,23 +55,83 @@ const updateSingleUserInDb = async (userId: number, userData: TUser) => {
 
 };
 
-const deleteUserFromDb = async(userId: number) => {
+const deleteUserFromDb = async (userId: number) => {
 
     const foundUser = await User.isUserExists(userId);
    
-     if (foundUser) {
-         const result = await User.deleteOne({ userId });
-         return result;
+    if (foundUser) {
+        const result = await User.deleteOne({ userId });
+        return result;
     } else {
-        // throw new Error('User already exists!');
         throw new Error('User not found!');
     }
 
-}
+};
+
+
+const addSingleProductToUserOrdersInDb = async (userId: number, productData: TOrders) => {
+    const foundUser = await User.isUserExists(userId);
+    const product = productData;
+    console.log({product})
+    if (foundUser) {
+        if (!foundUser.orders) {
+            foundUser.orders = [];
+        };
+        const userData = await User.findOne({ userId });
+        if (userData) {
+            if (!userData.orders) {
+                userData.orders = []
+            };
+            if (userData.orders.length >= 0) {
+                userData.orders.push(product)
+            };
+            await User.updateOne({ userId }, { $set: userData });
+            console.log(userData)
+        }
+    } else {
+        throw new Error('User not found!');
+    }
+
+};
+
+
+
+
+const getAllProductOFSingleUserFromDb = async (userId: number) => {
+
+    const foundUser = await User.isUserExists(userId);
+    if (foundUser) {    
+        const userDetails = await User.findOne({ userId: foundUser.userId });
+        const orders = userDetails?.orders;
+        return orders;
+    } else {
+        throw new Error('User not found!');
+    }
+};
+
+const getTotalProductPriceOFSingleUserFromDb = async (userId: number) => {
+
+    const foundUser = await User.isUserExists(userId);
+    if (foundUser) {    
+        const userDetails = await User.findOne({ userId: foundUser.userId });
+        const orders = userDetails?.orders;
+
+        const totalPrice = orders?.reduce((total, order) => {
+            return total + order.price * order.quantity;
+        }, 0); 
+        
+        return totalPrice;
+    } else {
+        throw new Error('User not found!');
+    }
+};
 export const UserServices = {
     createUserInDb,
     getAllUsersFromDb,
     getSingleUserFromDb,
     updateSingleUserInDb,
-    deleteUserFromDb
+    deleteUserFromDb,
+    addSingleProductToUserOrdersInDb,
+    getAllProductOFSingleUserFromDb,
+    getTotalProductPriceOFSingleUserFromDb
 }

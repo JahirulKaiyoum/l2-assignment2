@@ -6,20 +6,20 @@ import config from '../../config';
 const FullNameSchema = new Schema<TFullName>({
     firstName:  {type:String,required:true},
     lastName:  {type:String,required:true}
-}
+},{ _id: false }
 )
 const AddressSchema = new Schema<TAddress>({
     street: {type:String,required:true},
     city: {type:String,required:true},
     country: {type:String,required:true}
-}
+},{ _id: false }
 )
 
 const OrderSchema = new Schema<TOrders>({
   productName: { type: String, required: true },
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
-});
+},{ _id: false });
 
 
 const UserSchema = new Schema<TUser,UserModel>({
